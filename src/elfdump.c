@@ -20,7 +20,7 @@
      unsigned n = 0;
      uint8_t rd;
 
-     if (fgets(buf,size+1,fd) == NULL) return 0;
+     if (fread(buf,1,size, fd) != size) return 0;
 
      for (n = 0; n < size; n++) {
         v |= (uintptr_t)(buf[n]) << (n * 8);
@@ -136,12 +136,12 @@ static int download(void) {
 
         fseek(fd, p_offset, SEEK_SET);
         addr = p_vaddr;
+        size_t size = 0x10000;
         while (pos < p_filesz && pos < p_memsz) {
             printf("-> begin reading file");
             printf("-> pos %x\n", pos);
             printf("-> p_filesz %x\n", p_filesz);
-            //uint8_t * mem = (void *)addr;
-            size_t size = 0x10000;
+            printf("-> p_filesz %x\n", p_memsz);
             if (size > p_filesz - pos) {
                 size = (size_t)(p_filesz - pos);
                 printf("-> size =  p_filezsz = %x\n", size);
@@ -152,10 +152,11 @@ static int download(void) {
             }
             printf("-> size  %x\n", size);
 
-            fgets(mem, size, fd);
-            fwrite(mem, 1, size, phent_fd);
+            size_t rn = fread(mem, 1, size, fd);
+            printf("read %x\n", rn );
+            size_t wn = fwrite(mem, 1,size,  phent_fd);
+            printf("write %x\n", wn );
 
-            //addr += size;
             pos += size;
 
         };
